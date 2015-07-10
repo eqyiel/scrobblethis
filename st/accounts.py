@@ -25,12 +25,15 @@ except ImportError:
     import ConfigParser as configparser
 
 class Account(object):
-    def __init__(self, name, type, username, password, password_hash, submit_url, client_version):
+    def __init__(self, name, type, username, password, password_cmd, password_hash, submit_url, client_version):
     
         self.name = name
         self.username = username
         self.type = type
         
+        if password_cmd:
+            password = os.popen(password_cmd).read()
+
         if not password_hash:
             password_hash = hashlib.md5(password).hexdigest()
         
@@ -70,6 +73,7 @@ def get_accounts():
                                     type = c.get(name, "type"),
                                     username = c.get(name, "username"),
                                     password = c.get(name, "password"),
+                                    password_cmd = c.get(name, "password_cmd"),
                                     password_hash = c.get(name, "md5_password_hash"),
                                     submit_url = c.get(name, "submit_url"),
                                     client_version = st.common.version
@@ -80,15 +84,18 @@ def get_accounts():
 def write_default_accounts():
     text = """# Enable one or more of these accounts
 # 
-# You can either provide your passwords or your md5 hash. To get a md5 of a string type this into a shell:
-# python -c "import getpass, hashlib; print(hashlib.md5(getpass.getpass().encode('utf-8')).hexdigest())"
-# 
+# You can provide your password as plain text, an md5 hash, or a command to
+# retrieve the password.
+# To get a md5 of a string type this into a shell:
+# $ python -c "import getpass, hashlib; \
+#   print(hashlib.md5(getpass.getpass().encode('utf-8')).hexdigest())"
 #
 #A sample Last.fm account. Uncomment this section to use it.
 #[MyLastfmAccount]
 #type = lastfm
 #username = 
 #password = 
+#password_cmd = 
 #md5_password_hash = 
 #
 #A sample Libre.fm account. Uncomment this section to use it.
@@ -96,6 +103,7 @@ def write_default_accounts():
 #type = librefm
 #username = 
 #password = 
+#password_cmd = 
 #md5_password_hash = 
 #
 #A sample custom account account
@@ -104,6 +112,7 @@ def write_default_accounts():
 #submit_url = 
 #username = 
 #password = 
+#password_cmd =
 #md5_password_hash = """
     
     
